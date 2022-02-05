@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-proba
+  labels:
+    owner: szabodorottya
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proba
+  template:
+    metadata:
+      labels:
+        app: proba
+    spec:
+      containers:
+        - name: container-proba
+          image: macidori98/proba:26
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-proba
+  labels:
+    owner: szabodorottya
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app: proba
