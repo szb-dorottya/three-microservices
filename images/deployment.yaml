@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deployment-proba
+  name: deployment-images
   labels:
     owner: szabodorottya
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: proba
+      app: images
   template:
     metadata:
       labels:
-        app: proba
+        app: images
     spec:
       containers:
-        - name: container-proba
-          image: macidori98/proba:26
+        - name: container-images
+          image: macidori98/pythonapp:1
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -24,7 +24,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: service-proba
+  name: service-images
   labels:
     owner: szabodorottya
 spec:
@@ -35,4 +35,4 @@ spec:
       targetPort: 8000
       protocol: TCP
   selector:
-    app: proba
+    app: images

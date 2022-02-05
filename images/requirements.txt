@@ -13,3 +13,6 @@ mysql-connector-python==8.0.28
 asyncio==3.4.3
 pydantic==1.9.0
 databases==0.5.5
+pytz==2021.3
+aiomysql==0.0.22
+typing==3.7.4.3

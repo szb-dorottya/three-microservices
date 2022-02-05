@@ -1,73 +1,65 @@
+from datetime import datetime
+from typing import Optional
+from databases import Database
 from fastapi import FastAPI
-import mysql.connector
+import pytz
 import uvicorn
 from pydantic import BaseModel
-import json
 
 app = FastAPI()
-
-mydb = None
-mycursor = None
+#database = Database("mysql+pymysql://root:password@localhost:3306/images_db")
+database = Database("mysql+pymysql://root:CUjbxxb3qw@mysqllllllllll.default.svc.cluster.local:3306/images_db")
 
 @app.on_event("startup")
 async def on_startup():
-    mydb =  mysql.connector.connect(
-        host="mysqllllllllll.default.svc.cluster.local",
-        user="root",
-        password="CUjbxxb3qw",
-        database="images_db"
-    )
-    mycursor =  mydb.cursor()
-
-    #mycursor.execute("CREATE DATABASE IF NOT EXISTS images_db;")
-    #mycursor.execute("USE images_db;")
-
-    mycursor.execute("CREATE TABLE IF NOT EXISTS images (id INT AUTO_INCREMENT NOT NULL PRIMARY KEY, name VARCHAR(100) NOT NULL, url VARCHAR(200) NOT NULL, created_at VARCHAR(20) NOT NULL);")
+   await database.connect()
 
 class Image(BaseModel):
-    id: int
+    id: Optional[int] = None
     name: str
     url: str
-    created_at: str
-
-def serializer(value):
-    return json.dumps(value).encode()
-
-def deserializer(serialized):
-    return json.loads(serialized)
+    created_at: Optional[str] = None
 
 @app.get("/")
 def home():
-    result = {"aa": "bb"}
+    result = {"test": "api"}
     return {"Data": result}
 
-@app.get("/db")
-def home():
-    return {"Data": "test"}
-
 @app.get("/api/images")
-def images():
-    return mycursor.execute("select * from images;")
+async def images():
+    query = "SELECT * FROM images"
+    rows = await database.fetch_all(query=query)
+    return rows
 
 @app.get("/api/image/{id}")
-def get_video_with_id(id: int):
-    return {"image with a given id": id}
+async def get_video_with_id(id: int):
+    query = "SELECT * FROM images WHERE id = :idd"
+    values = {"idd": id}
+    result = await database.fetch_one(query=query, values=values)
+    return result
 
 @app.post("/api/images")
-def create_video(image: Image):
-    sql = "INSERT INTO images (name, url, created_at) VALUES (%s, %s, %s)"
-    val = (image.name, image.url, image.created_at)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    return mycursor.rowcount
+async def create_video(image: Image):
+    query = "INSERT INTO images(name, url, created_at) VALUES (:name, :url, :created_at)"
+    now = datetime.now(pytz.timezone('Europe/Bucharest'))
+    date_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    values = {"name": image.name, "url": image.url, "created_at": date_time}
+    id = await database.execute(query=query, values=values)
+    return {"id":id}
 
 @app.put("/api/images/{id}")
-def update_video(id: int, image: int):
-   return {"it changes a image props with id"}
+async def update_video(id: int, image: Image):
+    query = "UPDATE images SET name = :name, url = :url WHERE id = :id"
+    values = {"name": image.name, "url": image.url, "id": id}
+    id = await database.execute(query=query, values=values)
+    return {"id":id}
 
 @app.delete("/api/images/{id}")
-def delete_video(id: int):
-    return {"deletes a image with id"}
+async def delete_video(id: int):
+    query = "DELETE FROM images WHERE id = :id"
+    values = { "id": id}
+    id = await database.execute(query=query, values=values)
+    return {"rows affected":id}
 
 
 if __name__ == "__main__":
