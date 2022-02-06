@@ -1,3 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: deployment-books-secrets
+type: Opaque
+data:
+  password_rabbitmq: Q3QwYUFCSm5kNTJNMVJGelhnblFmNk1IMHhqc05zaUE=
+  password_mongodb: V3NNMmxic2d3ZAo=
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,11 +25,19 @@ spec:
     spec:
       containers:
         - name: container-books
-          image: macidori98/books22:35
+          image: macidori98/books22:57 #35 a jo valtozat assync comm nelkul
           imagePullPolicy: Always
           env:
-            - name: MONGO_URL
-              value: mongodb://root:WsM2lbsgwd@my-release-mymongo-mongodb.default.svc.cluster.local:27017
+            - name: SECRET_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: deployment-books-secrets
+                  key: password_rabbitmq
+            - name: SECRET_MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: deployment-books-secrets
+                  key: password_mongodb
           ports:
             - containerPort: 3000
 ---

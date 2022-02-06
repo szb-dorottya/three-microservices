@@ -9,4 +9,4 @@ const BookSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.connection.useDb("proba").model("Book", BookSchema);
+module.exports = mongoose.connection.useDb("book").model("Book", BookSchema);
